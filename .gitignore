@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.DS_Store
+*.log
+coverage/
+output/
+*_qa.png
+_render.log
+_qa_*/
+server.log
+server.pid
+check.log
+playwright-report/

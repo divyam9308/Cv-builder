@@ -1,36 +1,88 @@
-# Folio — Local-first Resume Studio
+# Folio — Local Resume Studio
 
-The complete, tested Folio source is included as a SHA-256-verified package in `payload/`. The one-time unpacker is provided because GitHub Actions has not yet expanded the source automatically. **There is no database, Supabase, Vercel or required API key.**
+A local-first resume builder inspired by the restrained navy-and-gold design language of Fyndbridge ATS. It focuses on **credible, evidence-led resumes** instead of generic AI-generated prose.
 
-## Run on your Mac
+![Status: local-first](https://img.shields.io/badge/runtime-local--first-001264) ![Dependencies: zero](https://img.shields.io/badge/runtime%20npm%20dependencies-0-DAB111)
 
-1. Install Node.js 20 or newer, if necessary.
-2. Open Terminal and run:
+## Run locally
+
+**Requirements:** Node.js 20 or later. No database, Supabase account, Vercel deployment, Docker or `npm install` is needed.
 
 ```bash
-git clone https://github.com/divyam9308/Cv-builder.git
-cd Cv-builder
-npm start
+# Clone your repository
+ git clone https://github.com/divyam9308/Cv-builder.git
+ cd Cv-builder
+
+# Start at http://127.0.0.1:4173
+ npm start
 ```
 
-3. Open **http://127.0.0.1:4173**.
+Open **http://127.0.0.1:4173** in your browser. `npm run dev` adds Node file watching. The initial workspace includes an explicitly labeled sample resume; create a blank one through **New resume**. The local development server binds to loopback only.
 
-On the first run, `npm start` verifies the packaged application's SHA-256 checksum, extracts the real `public/`, `server/`, `tests/` and other source files, and starts the site. On later runs it uses the application directly. The first-run extraction is **entirely offline** and uses only Node.js and the built-in `tar` command. No `npm install` is required.
+## Optional Gemini integration
 
-## Configure Gemini (optional)
+1. Create a Gemini key in [Google AI Studio](https://aistudio.google.com/api-keys).
+2. Copy `.env.example` to `.env` in the project root.
+3. Set `GEMINI_API_KEY=your_key` in `.env` (never commit this file).
+4. Check that `GEMINI_MODEL` names a model available to your key. The example uses `gemini-3.5-flash-lite`; you may change it.
+5. Restart `npm start` and open **Settings & data** to confirm that Gemini is configured.
 
-After the first run, stop the server and copy `.env.example` to `.env`. Put your own key in `GEMINI_API_KEY` and optionally set `GEMINI_MODEL`. Restart `npm start`. Never commit your `.env` file. Without a key, the local adaptive interview, manual editor, resume library, templates and exports all work; optional Gemini calls are disabled.
+**No key is needed for local resume editing, rule-based interview questions, template selection or PDF/DOCX exports.** The Gemini buttons explicitly opt into sending selected resume details/job descriptions to Google's API. The key remains server-side. The app does not call Gemini in the background as you type.
 
-## Features
+**Security:** treat the `.env` file as sensitive; the local server is not hardened as a hosted multi-tenant service. It includes loopback binding, CSP, same-origin POST protection, bounded JSON requests, and a basic in-memory rate limit, but is intended for localhost only.
 
-- ATS-inspired navy `#001264` and gold `#DAB111` workspace
-- Multiple resumes, autosave in local browser storage, duplication, backup and restore
-- Experience, education, projects, achievements, certifications, skills and job-description tailoring
-- Evidence-led follow-up interview with local rules and optional Gemini-generated questions/rewording
-- Explicit user approval of proposed bullet improvements
-- Five resume templates: Oxford, Northstar, Ledger, Atelier, Clarity
-- Automatic multi-page PDF and editable DOCX outputs
+## Complete workflow
 
-After the first run, verify with `npm run check` (21 automated tests), `npm run samples` (12 example files), and, if Chromium/Playwright are installed, `python tests/browser_qa.py`. The full README in the extracted source documents limitations, privacy, sample data and export behavior.
+| Module | Included |
+|---|---|
+| Resume library | Create, edit, rename, duplicate and delete multiple resumes |
+| Resume editor | Contact, title, summary, work and internships, education, projects, skills, certifications, awards and job description |
+| Live preview | Immediate updates, five visual themes, A4-style reading surface |
+| Interview | Contextual local follow-ups for vague bullets, missing impact, methods, projects, summary and skills; optional deeper Gemini questions |
+| AI rewrite | Optional single-bullet rewrite, numerical evidence guard and explicit accept step |
+| Job tailoring | Simple term overlap view, deliberately **not** a fabricated ATS score |
+| PDF | Selectable-text, A4/Letter and automatic multi-page continuation |
+| DOCX | Editable Microsoft Word-compatible OOXML with document pagination |
+| Data | Browser localStorage autosave, JSON backup/restore, no database |
+| QA | Node tests, optional local browser QA, five sample exports, GitHub Actions |
 
-**Important:** This is a locally running single-user website. The browser stores resumes locally, so export a JSON backup regularly. Direct PDF output is best suited to Latin text; Unicode-rich documents can use DOCX or browser print-to-PDF.
+Resume templates: **Oxford** (traditional), **Northstar** (modern), **Ledger** (executive), **Atelier** (subtle creative), **Clarity** (minimal). These are independently authored designs; names and layouts are not copies of third-party templates.
+
+## Paper length and formatting
+
+- The website intentionally **does not force everything onto one page**. Exports flow to additional pages as necessary.
+- The page-count selector represents the user's preference for a future content-editing pass; it does **not** silently discard content or guarantee a specific number of pages.
+- The browser's continuous preview is not a perfect simulation of Word/PDF page breaks. Always review the exported document before sending it.
+- The built-in minimal PDF engine uses the standard PDF Base-14 Latin font set. For names or body text requiring non-Latin glyphs (e.g., Devanagari), use the **Browser print preview → Save as PDF** (uses system fonts) or export DOCX, which preserves Unicode text. Direct PDF export is intentionally dependency-free and has limited non-Latin glyph coverage.
+- Word/Docs may reflow DOCX differently according to installed fonts and office version.
+
+## Tests
+
+```bash
+npm run check                # JS syntax + 21 unit/integration tests
+npm run samples              # 5 PDFs + 5 DOCXs + long-form fixtures
+python tests/browser_qa.py   # Optional: requires Python Playwright + Chromium
+```
+
+The browser QA harness instrumentally mounts the same JS/CSS in Chromium because the isolated test sandbox disallows URL navigation, and exercises interaction flows. HTTP endpoints are separately integration-tested in Node.
+
+`npm run samples` writes generated example documents to `samples/output/` (ignored by Git). The GitHub Actions workflow runs `npm run check` and attaches generated examples as a downloadable workflow artifact.
+
+## Privacy and honesty
+
+- This is a **single-device** personal app, not a production SaaS. localStorage is per browser profile and can be cleared by the browser. Back up important resumes as JSON.
+- The local interview is rules-based, not a hidden LLM. Gemini availability and errors are visible. No success claim is made without a model response.
+- Resume suggestions are proposed rather than silently inserted. Users should review all claims for factual accuracy.
+- AI may still phrase unsupported implications despite safeguards; the final resume is the user's responsibility.
+- Never store API keys in resume JSON. The only required server secret is read from `.env`.
+
+## References informing the design
+
+- [Harvard Career Services: Creating a Strong Resume](https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/) — specific, fact-based accomplishment bullets.
+- [Harvard FAS: Resume/CV Templates](https://careerservices.fas.harvard.edu/resources/category/resume-cv-cover-letter-templates/) — clear conventional headings.
+- [CareerOneStop: Resume Formatting](https://cloudfront.careeronestop.org/JobSearch/Resumes/ResumeGuide/formatting.aspx) — accessible, consistent single-column layout.
+- [Google Gemini API: generateContent REST](https://ai.google.dev/api/generate-content) — server-side API integration.
+
+---
+
+**Local-first by design. No Supabase. No Vercel. No required API key.**

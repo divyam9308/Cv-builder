@@ -1,13 +1,6 @@
 {
-  "name": "cv-builder-bootstrap",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "description": "Checksum-verified first-run unpacker for local-first Folio resume studio",
-  "scripts": {
-    "start": "node bootstrap.mjs",
-    "dev": "node bootstrap.mjs",
-    "check": "node bootstrap.mjs --prepare && npm run check"
-  },
-  "engines": {"node": ">=20"}
+  "name":"cv-builder","version":"1.0.0","private":true,"type":"module",
+  "description":"A local-first, intelligent resume studio",
+  "scripts":{"start":"node server/index.js","dev":"node --watch server/index.js","test":"node --test tests/*.test.js","check":"node --check server/index.js && node --check server/pdf.js && node --check server/docx.js && node --check server/gemini.js && node --check public/app.js && node --check public/lib/domain.js && npm test","samples":"node samples/export-samples.js"},
+  "engines":{"node":">=20"}
 }

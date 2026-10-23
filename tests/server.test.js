@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createServer} from '../server/index.js';
+import {sampleResume} from '../public/lib/domain.js';
+let server,url;
+test.before(async()=>{server=createServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));url=`http://127.0.0.1:${server.address().port}`});
+test.after(async()=>{await new Promise(resolve=>server.close(resolve))});
+test('health indicates local mode and no API key',async()=>{const r=await fetch(url+'/api/health');const data=await r.json();assert.equal(data.mode,'local');assert.equal(typeof data.geminiConfigured,'boolean')});
+test('serves HTML and JavaScript safely',async()=>{const a=await fetch(url+'/'),b=await fetch(url+'/app.js');assert.equal(a.status,200);assert.match(await a.text(),/Folio/);assert.equal(b.status,200);assert.match(b.headers.get('content-type'),/javascript/)});
+test('traversal is blocked',async()=>{const r=await fetch(url+'/%2e%2e/%2e%2e/README.md');assert.equal(r.status,404)});
+test('server produces attachment exports',async()=>{for(const ext of ['pdf','docx']){const r=await fetch(url+'/api/export/'+ext,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resume:sampleResume()})});assert.equal(r.status,200);assert.match(r.headers.get('content-disposition'),/attachment/);assert.ok((await r.arrayBuffer()).byteLength>2000)}});
+test('AI endpoint fails clearly in offline mode',async()=>{if(process.env.GEMINI_API_KEY)return;const r=await fetch(url+'/api/ai/questions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resume:sampleResume()})});assert.equal(r.status,503);assert.match((await r.json()).error,/not configured/i)});
+test('disallows untrusted browser origin',async()=>{const r=await fetch(url+'/api/export/pdf',{method:'POST',headers:{Origin:'https://unsafe.example','Content-Type':'application/json'},body:JSON.stringify({resume:sampleResume()})});assert.equal(r.status,403)});

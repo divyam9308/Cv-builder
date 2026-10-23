@@ -1,0 +1,6 @@
+import fs from 'node:fs';
+import {sampleResume,templates,newId} from '../public/lib/domain.js';
+import {renderPDF} from '../server/pdf.js';
+import {renderDOCX} from '../server/docx.js';
+const out=new URL('./output/',import.meta.url);fs.mkdirSync(out,{recursive:true});const sample=sampleResume();for(const t of templates){fs.writeFileSync(new URL(`${t.id}.pdf`,out),renderPDF(sample,t.id));fs.writeFileSync(new URL(`${t.id}.docx`,out),renderDOCX(sample,t.id));}
+const long=sampleResume();for(let i=0;i<14;i++)long.experience.push({id:newId(),role:`Consulting Engagement ${i+1}`,organization:`Example Consulting Group ${i+1}`,location:'New Delhi',start:'2021',end:'2022',bullets:[`Managed a multi-workstream reporting process for team ${i+1}, coordinating client documentation and reporting deliverables.`,`Organized recurring stakeholder meetings, collected feedback and documented action items for follow-up.`,`Analyzed qualitative trends and communicated key findings to project stakeholders.`,`Built and maintained project status trackers to support delivery planning and project handover.`]});fs.writeFileSync(new URL('long-resume.pdf',out),renderPDF(long));fs.writeFileSync(new URL('long-resume.docx',out),renderDOCX(long));console.log(`Created 12 artifacts in ${out.pathname}`);
