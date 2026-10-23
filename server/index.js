@@ -4,7 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {renderPDF} from './pdf.js';
 import {renderDOCX} from './docx.js';
-import {getAIQuestions,rewriteBullet,geminiConfigured} from './gemini.js';
+import {getAIQuestions,rewriteBullet,parseNarrative,geminiConfigured} from './gemini.js';
 import {normalizeResume} from '../public/lib/domain.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../public');
 // Lightweight .env loader: local configuration only, never exposed as static content.
@@ -25,6 +25,11 @@ export function createServer(){return http.createServer(async(req,res)=>{
       const data=await body(req);
       if(pathname==='/api/export/pdf'||pathname==='/api/export/docx'){
         const resume=normalizeResume(data.resume);const format=pathname.endsWith('pdf')?'pdf':'docx';const output=format==='pdf'?renderPDF(resume,data.templateId):renderDOCX(resume,data.templateId);return send(res,200,output,{'Content-Type':format==='pdf'?'application/pdf':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','Content-Disposition':`attachment; filename="${filename(resume.personal.name||resume.name)}-${filename(data.templateId||resume.template)}.${format}"`})}
+      if(pathname==='/api/ai/parse'){
+        if(!geminiConfigured())return json(res,503,{error:'Configure GEMINI_API_KEY in .env to generate a resume from text.'});
+        const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),28000);
+        try{return json(res,200,{draft:await parseNarrative(data.text,controller.signal)})}finally{clearTimeout(timeout)}
+      }
       if(pathname==='/api/ai/questions'||pathname==='/api/ai/rewrite'){
         if(!geminiConfigured())return json(res,503,{error:'Gemini key not configured. The local interview and exports still work.'});const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),28000);try{const result=pathname.endsWith('questions')?{questions:await getAIQuestions(data.resume,controller.signal)}:await rewriteBullet(data,controller.signal);return json(res,200,result)}finally{clearTimeout(timeout)}}
       return json(res,404,{error:'Unknown endpoint'});
