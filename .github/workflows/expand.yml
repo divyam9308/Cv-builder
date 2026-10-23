@@ -17,6 +17,10 @@ jobs:
           tar -xJf /tmp/folio-source.tar.xz
           npm run check
           rm -rf payload
+          # The source archive includes a workflow file, but the Actions token
+          # cannot create/update workflow files without workflows permission.
+          # Keep this expansion limited to application source files.
+          rm -f .github/workflows/check.yml
       - name: Commit tested source files
         run: |
           git config user.name "github-actions[bot]"
