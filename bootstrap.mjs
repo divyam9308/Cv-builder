@@ -24,7 +24,7 @@ if (!fs.existsSync(entry)) {
   try {
     const archive = path.join(tmp, 'source.tar.xz');
     fs.writeFileSync(archive, archiveBytes);
-    const untar = spawnSync('tar', ['-xJf', archive, '-C', root, '--keep-old-files'], {stdio:'inherit'});
+    const untar = spawnSync('tar', ['-xkJf', archive, '-C', root], {stdio:'inherit'});
     if (untar.error || untar.status !== 0) throw new Error('Could not unpack source. Ensure tar with xz support is installed.');
   } finally {fs.rmSync(tmp,{recursive:true,force:true});}
   console.log('Folio source integrity verified and unpacked locally.');
