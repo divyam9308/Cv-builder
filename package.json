@@ -1,0 +1,13 @@
+{
+  "name": "cv-builder-bootstrap",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Checksum-verified first-run unpacker for local-first Folio resume studio",
+  "scripts": {
+    "start": "node bootstrap.mjs",
+    "dev": "node bootstrap.mjs",
+    "check": "node bootstrap.mjs --prepare && npm run check"
+  },
+  "engines": {"node": ">=20"}
+}
